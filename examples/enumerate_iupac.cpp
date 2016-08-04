@@ -4,7 +4,6 @@
 
 int main(int argc, char ** argv)
 {
-
   // Initialize a Record as DNA with an ambiguous character
   FASTX::Record R("CCGGACTACHVGGGTWTCTAAT", "Primer", DNA_SEQTYPE);
 

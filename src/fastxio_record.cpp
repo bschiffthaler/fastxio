@@ -22,14 +22,9 @@
 #include <fastxio_auxiliary.h>
 
 namespace FASTX {
+ 
+  extern GData global; /**< Global variable of translation tables */
 
-  extern const std::set<char> G_nuc_alphabet;
-  extern const std::set<char> G_aa_alphabet;
-  extern const std::map<char, char> G_rc;
-  extern const std::map<char, std::vector<char> > G_enum_iupac_dna;
-  extern const std::map<char, std::vector<char> > G_enum_iupac_rna;
-  extern const std::map<std::string, char> G_codon_to_protein;
-  
   //Istream constructor
   Record::Record(std::istream& input, char seqtype = DNA_SEQTYPE)
     {
@@ -65,7 +60,7 @@ namespace FASTX {
   //FASTA sequence constructor
   Record::Record(const std::string& seq, const std::string& id,
 		 char seqtype = DNA_SEQTYPE) :
-    _seq(seq), _id(id), _type(FASTA_TYPE | seqtype)
+    _seq(seq), _id(id),  _type(FASTA_TYPE | seqtype)
   {
 #ifndef NO_ERROR_CHECKING
     this->validate();
@@ -75,7 +70,7 @@ namespace FASTX {
   //FASTQ sequence constructor
   Record::Record(const std::string& seq, const std::string& id,
 		 const std::string& qual, char seqtype = DNA_SEQTYPE) :
-    _seq(seq), _id(id), _qual(qual), _type(FASTQ_TYPE | seqtype)
+    _seq(seq), _id(id), _qual(qual),  _type(FASTQ_TYPE | seqtype)
   {
 #ifndef NO_ERROR_CHECKING
     this->validate();
@@ -98,9 +93,11 @@ namespace FASTX {
       {
 	for(char c : _seq)
 	  {
-	    if(G_nuc_alphabet.find(c) == G_nuc_alphabet.end())
+	    if(global.nuc_alphabet.find(c) == global.nuc_alphabet.end())
 	      {
-		throw std::runtime_error("Unknown character " + std::to_string(c) + " in sequence: " + _id);
+          std::string errmsg = "Unknown character ";
+          errmsg += c;
+		throw std::runtime_error(errmsg + " in sequence: " + _id);
 		ret = false;
 	      }
 	  }
@@ -109,7 +106,7 @@ namespace FASTX {
       {
 	for(char c : _seq)
 	  {
-	    if(G_aa_alphabet.find(c) == G_aa_alphabet.end())
+	    if(global.aa_alphabet.find(c) == global.aa_alphabet.end())
 	      {
 		throw std::runtime_error("Unknown character " + std::to_string(c) + " in sequence: " + _id);
 		ret = false;
@@ -160,6 +157,8 @@ namespace FASTX {
     if(_type & AA_SEQTYPE)
       throw std::runtime_error("Cannot translate amino acid sequence");
 #endif
+    auto& translation_table = _type & DNA_SEQTYPE ? global.codon_to_protein_dna :
+                              global.codon_to_protein_rna;
     std::stringstream ss(_seq);
     std::string res;
     ss.ignore(frame, EOF);
@@ -170,8 +169,8 @@ namespace FASTX {
         if(count == 3)
           {
             count = 0;
-            auto target = G_codon_to_protein.find(tmp);
-            if(target == G_codon_to_protein.end())
+            auto target = translation_table.find(tmp);
+            if(target == translation_table.end())
               {
                 res += 'X';
               }
@@ -256,7 +255,7 @@ namespace FASTX {
     std::string seq(_seq.rbegin(), _seq.rend());
     for(auto it = seq.begin(); it != seq.end(); it++)
       {
-	*it = G_rc.at(*it);
+	*it = global.rc.at(*it);
       }
     if(_type & FASTQ_TYPE)
       {
@@ -275,12 +274,12 @@ namespace FASTX {
     if(this->_type & DNA_SEQTYPE)
       {
 	std::set<char> unambiguous_nuc = {'A', 'C', 'G', 'T'};
-	recursive_iupac_enum(res, *this, G_enum_iupac_dna, unambiguous_nuc);
+	recursive_iupac_enum(res, *this, global.enum_iupac_dna, unambiguous_nuc);
       }
     else if(this->_type & RNA_SEQTYPE)
       {
 	std::set<char> unambiguous_nuc = {'A', 'C', 'G', 'U'};
-	recursive_iupac_enum(res, *this, G_enum_iupac_rna, unambiguous_nuc);
+	recursive_iupac_enum(res, *this, global.enum_iupac_rna, unambiguous_nuc);
       }
     return res;
   }

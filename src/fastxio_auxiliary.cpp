@@ -23,12 +23,7 @@
 
 namespace FASTX {
 
-  extern const std::set<char> G_nuc_alphabet;
-  extern const std::set<char> G_aa_alphabet;
-  extern const std::map<char, char> G_rc;
-  extern const std::map<char, std::vector<char> > G_enum_iupac_dna;
-  extern const std::map<char, std::vector<char> > G_enum_iupac_rna;
-  extern const std::map<std::string, char> G_codon_to_protein;
+  extern GData global; /**< Global variable of translation tables */
   
   // Get iterator to the next whitespace character
   std::basic_string<char>::const_iterator get_whitespace(std::string& s) 
@@ -120,12 +115,12 @@ namespace FASTX {
   {
     if((seqtype & DNA_SEQTYPE) || (seqtype & RNA_SEQTYPE) )
       {
-	if(G_nuc_alphabet.find(test) != G_nuc_alphabet.end())
+	if(global.nuc_alphabet.find(test) != global.nuc_alphabet.end())
 	  return true;
       }
     if(seqtype & AA_SEQTYPE)
       {
-	if(G_aa_alphabet.find(test) != G_aa_alphabet.end())
+	if(global.aa_alphabet.find(test) != global.aa_alphabet.end())
 	  return true;
       }
     return false;
