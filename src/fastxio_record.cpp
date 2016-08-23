@@ -5,6 +5,7 @@
 #include <string>
 #include <algorithm>
 #include <memory>
+#include <cctype>
 
 #ifndef NO_ERROR_CHECKING
   #include <cerrno>
@@ -45,6 +46,8 @@ namespace FASTX {
 	      std::getline(input, app);
 	      _seq.append(app);
 	    }
+	  while(isspace(input.peek()))
+	    input.ignore(1, '\n');
 	}
       if(_type & FASTQ_TYPE)
 	{
