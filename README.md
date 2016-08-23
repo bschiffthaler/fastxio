@@ -2,7 +2,7 @@
 
 _No BS FASTA/Q input/output and other operations_
 
-This library is meant as a simple, easy-tp-use and effective means of reading, writing and manipulating [FASTA] and [FASTQ] files. The emphasis of the library lies on a balance of speed and correctness, therefore it aims to be IUPAC compliant, supporting ambiguous nucleotide letters (e.g. `W`) and DNA, RNA, as well as amino acid containing data.
+This library is meant as a simple, easy-to-use and effective means of reading, writing and manipulating [FASTA] and [FASTQ] files. The emphasis of the library lies on a balance of speed and correctness, therefore it aims to be IUPAC compliant, supporting ambiguous nucleotide letters (e.g. `W`) and DNA, RNA, as well as amino acid containing data.
 
 It is meant as building blocks for larger applications.
 
@@ -44,10 +44,9 @@ In order to build the library without record validation, pass the `NO_CHEKING` f
 ```
 mkdir build
 cd build
-cmake cmake -DCMAKE_BUILD_TYPE=Release -DNO_CHECKING=ON ..
+cmake -DCMAKE_BUILD_TYPE=Release -DNO_CHECKING=ON ..
 make
 ```
-``
 
 
 ## Examples
