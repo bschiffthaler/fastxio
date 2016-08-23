@@ -66,6 +66,22 @@ namespace FASTX {
     char get_type(void) const { return _type; }
 
     /**
+     * @brief Get a shared pointer to sequence.
+     *
+     * @return A shared pointer to the sequence of the object.
+     */    
+    std::shared_ptr<const std::string> get_seq_ptr(void) const {
+      return std::make_shared<const std::string>(_seq); }
+
+    /**
+     * @brief Get a shared pointer to quality.
+     *
+     * @return A shared pointer to the quality string of the object.
+     */
+    std::shared_ptr<const std::string> get_qual_ptr(void) const {
+      return std::make_shared<const std::string>(_qual); }
+    
+    /**
      * @brief Get the length of the record.
      *
      * @return The length of the record.
