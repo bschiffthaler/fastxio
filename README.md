@@ -39,7 +39,7 @@ cmake -DCMAKE_BUILD_TYPE=Release ..
 make
 ```
 
-In order to build the library without record validation, pass the `NO_CHEKING` flag to `cmake`
+In order to build the library without record validation, pass the `NO_CHECKING` flag to `cmake`
 
 ```
 mkdir build

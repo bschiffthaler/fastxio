@@ -1,12 +1,5 @@
 #ifndef _FASTX_IO_AUXILIARY_H_
 #define _FASTX_IO_AUXILIARY_H_
-/** 
- * @brief Auxiliary functions
- *
- * The functions here provide auxiliary features to the classes,
- * most notably detecting formats and parsing characters.
- *
-*/
 
 #include <string>
 #include <fstream>
@@ -16,6 +9,15 @@
 
 namespace FASTX {
 
+  /** 
+   * @brief Auxiliary functions
+   *
+   * The functions here provide auxiliary features to the classes,
+   * most notably detecting formats and parsing characters.
+   *
+   */
+
+  
   /**
    * @brief Return an iterator to the first whitespace character.
    * 
