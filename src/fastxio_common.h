@@ -18,6 +18,8 @@
 #define FASTX_SW_GAP_EXTENSION 2
 #define FASTX_SW_GAP_OPEN 5
 
+#define NULL_SEQTYPE 0
+
 #define FASTQ_TYPE 1
 #define FASTA_TYPE 2
 

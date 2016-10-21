@@ -80,6 +80,11 @@ namespace FASTX {
 #endif
   }
 
+  Record::Record(void) :
+    _seq(""), _id(""), _qual(""), _type(NULL_SEQTYPE)
+  {
+  }
+
   bool Record::validate(void) const
   {
     bool ret = true;
@@ -228,7 +233,8 @@ namespace FASTX {
   }
 
   // Create a sliding window along a sequence
-  std::vector<Record> Record::window(length_t width, length_t increment) const
+  std::vector<Record> Record::window(length_t width, length_t increment,
+				     bool include_final) const
   {
     length_t start = 0;
     length_t stop = width - 1;
@@ -238,7 +244,7 @@ namespace FASTX {
 	res.push_back(this->subseq(start, stop));
 	start += increment;
 	stop += increment;
-	if(stop >= _seq.length())
+	if(stop >= _seq.length() && include_final)
 	  res.push_back(this->subseq(start, _seq.length() - 1));
       }
     return res;
@@ -332,6 +338,357 @@ namespace FASTX {
   std::ostream& operator<<(std::ostream& outstream, Wrap rec)
   {
     return rec(outstream);
+  }
+
+  //Initialize kmer walker at position 0
+  kmer_walker::kmer_walker(size_t k, const Record& r) :
+    _k(k), _parent(r), _current_pos(0)
+  {
+    if(_parent.size() >= _k)
+      {
+	_rec = _parent.subseq(0, _k - 1); // Stop of subseq is inclusive
+	_end = false;
+      }
+    else
+      {
+	_end = true;
+      }
+    _begin = false;
+  }
+
+  // Initialize a kmer walker at a given position
+  kmer_walker::kmer_walker(size_t k, size_t pos, const Record& r) :
+    _k(k), _parent(r), _current_pos(pos)
+  {
+    if(_parent.size() >= (_k + _current_pos))
+      {
+	_rec = _parent.subseq(_current_pos, _current_pos + _k - 1);
+	_end = false;
+      }
+    else
+      {
+	_end = true;
+      }
+    _begin = _current_pos == 0 ? true : false;
+  }
+
+  // Move kmer by +1 in pre increment
+  kmer_walker& kmer_walker::operator++()
+  {
+    _current_pos++;
+    _begin = false; //by definition
+    
+    if(_parent.size() >= (_current_pos + _k))
+      {
+	_rec = _parent.subseq(_current_pos, _current_pos + _k - 1);
+	_end = false;
+      }
+    else
+      {
+	_end = true;
+      }
+    
+    return *this;
+  }
+
+  // Move kmer by +1 in post increment
+  kmer_walker kmer_walker::operator++(int)
+  {
+    kmer_walker ret(*this);
+    _current_pos++;
+    _begin = false;
+    
+    if(_parent.size() >= (_current_pos + _k))
+      {
+	_rec = _parent.subseq(_current_pos, _current_pos + _k - 1);
+	_end = false;
+      }
+    else
+      {
+	_end = true;
+      }
+    
+    return ret;
+  }
+
+  // Move kmer by -1 in pre decrement
+  kmer_walker& kmer_walker::operator--()
+  {
+    _end = _current_pos <= (_parent.size() - 1) ? false : true;
+    if(_current_pos == 0)
+      {
+	_begin = true;
+      }
+    else
+      {
+	_current_pos--;
+	_rec = _parent.subseq(_current_pos, _current_pos + _k - 1);
+	_begin = false;
+      }
+    return *this;
+  }
+
+  // Move kmer by -1 in post decrement
+  kmer_walker kmer_walker::operator--(int)
+  {
+    _end = _current_pos <= (_parent.size() - 1) ? false : true;
+    kmer_walker ret(*this);
+    if(_current_pos == 0)
+      {
+	_begin = true;
+      }
+    else
+      {
+	_current_pos--;
+	_rec = _parent.subseq(_current_pos, _current_pos + _k - 1);
+	_begin = false;
+      }
+    return ret;
+  }
+
+  // Return reference to kmer
+  Record& kmer_walker::operator*()
+  {
+    return _rec;
+  }
+
+  // Return a copy of the kmer
+  Record kmer_walker::kmer()
+  {
+    return _rec;
+  }
+
+  // Skip a number of positions
+  void kmer_walker::skip(size_t n)
+  {
+    _current_pos += n;
+    if(_parent.size() >= (_current_pos + _k))
+      {
+	_rec = _parent.subseq(_current_pos, _current_pos + _k - 1);
+	_end = false;
+      }
+    else
+      {
+	_end = true;
+      }
+  }
+
+  // Rewind a number of bases
+  void kmer_walker::rewind(size_t n)
+  {
+    if(_current_pos < n)
+      {
+	_begin = true;
+      }
+    else
+      {
+	_current_pos -= n;
+	_rec = _parent.subseq(_current_pos, _current_pos + _k - 1);
+	_begin = false;
+      }
+  }
+
+  //Initialize a window walker at position 0
+  window_walker::window_walker(size_t ws, size_t increment,
+			       const Record& r, bool include_final) :
+    _ws(ws), _parent(r), _current_pos(0),
+    _increment(increment), _include_final(include_final)
+  {
+    if(_parent.size() >= _ws)
+      {
+	_rec = _parent.subseq(0, _ws - 1); // Stop of subseq is inclusive
+	_end = false;
+      }
+    else if(_include_final)
+      {
+	_rec = _parent.subseq(0, _parent.size() - 1);
+	_end = false; _include_final = false;
+      }
+    else
+      {
+	_end = true;
+      }
+    _begin = true;
+  }
+
+  // Initialize a window walker at a given position
+  window_walker::window_walker(size_t ws, size_t increment,
+			       size_t pos, const Record& r,
+			       bool include_final) :
+    _ws(ws), _parent(r),
+    _current_pos(pos), _increment(increment)
+  {
+    if(_parent.size() <= (_ws + _current_pos))
+      {
+	_rec = _parent.subseq(_current_pos, _current_pos + _ws - 1);
+	_end = false;
+      }
+    else if(_include_final && _current_pos < _parent.size())
+      {
+	_rec = _parent.subseq(_current_pos, _parent.size() - 1);
+	_end = false; _include_final = false;
+      }
+    else
+      {
+	_end = true;
+      }
+    _begin = _current_pos == 0 ? true : false;
+  }
+
+  // Move window by +increment in pre increment
+  window_walker& window_walker::operator++()
+  {
+    _current_pos += _increment;
+    _begin = false;
+    if(_parent.size() >= (_current_pos + _ws))
+      {
+	_rec = _parent.subseq(_current_pos, _current_pos + _ws - 1);
+	_end = false;
+      }
+    else if(_include_final && _current_pos < _parent.size())
+      {
+	_rec = _parent.subseq(_current_pos, _parent.size() - 1);
+	_end = false; _include_final = false;
+      }
+    else
+      {
+	_end = true;
+      }
+    return *this;
+  }
+
+  // Move window by +increment in post increment
+  window_walker window_walker::operator++(int)
+  {
+    window_walker ret(*this);
+    _current_pos += _increment;
+    _begin = false;
+    if(_parent.size() >= (_current_pos + _ws))
+      {
+	_rec = _parent.subseq(_current_pos, _current_pos + _ws - 1);
+	_end = false;
+      }
+    else if(_include_final && _current_pos < _parent.size())
+      {
+	_rec = _parent.subseq(_current_pos, _parent.size() - 1);
+	_end = false; _include_final = false;
+      }
+
+    else
+      {
+	_end = true;
+      }
+    return ret;
+  }
+
+  // Move window by -increment in pre decrement
+  window_walker& window_walker::operator--()
+  {
+    if(_current_pos < _increment)
+      {
+	if(_include_final)
+	  {
+	    _rec = _parent.subseq(0, _current_pos);
+	    _begin = false; _include_final = false;
+	  }
+	else
+	  {
+	    _begin = true;
+	  }
+	_end = _current_pos <= (_parent.size() - 1) ? false : true;
+      }
+    else
+      {
+	_current_pos -= _increment;
+	_rec = _parent.subseq(_current_pos, _current_pos + _ws - 1);
+	_begin = false;
+	_end = _current_pos <= (_parent.size() - 1) ? false : true;
+      }
+    return *this;
+  }
+
+  // Move window by -increment in post decrement
+  window_walker window_walker::operator--(int)
+  {
+    window_walker ret(*this);
+    if(_current_pos < _increment)
+      {
+	if(_include_final)
+	  {
+	    _rec = _parent.subseq(0, _current_pos);
+	    _begin = false; _include_final = false;
+	  }
+	else
+	  {
+	    _begin = true;
+	  }
+	_end = _current_pos <= (_parent.size() - 1) ? false : true;
+      }
+    else
+      {
+	_current_pos -= _increment;
+	_rec = _parent.subseq(_current_pos, _current_pos + _ws - 1);
+	_begin = false;
+	_end = _current_pos <= (_parent.size() - 1) ? false : true;
+      }
+    return ret;
+  }
+
+  // Return reference to window
+  Record& window_walker::operator*()
+  {
+    return _rec;
+  }
+
+  // Return a copy of the window
+  Record window_walker::window()
+  {
+    return _rec;
+  }
+
+  // Skip a number of positions
+  void window_walker::skip(size_t n)
+  {
+    _current_pos += n;
+    if(_parent.size() >= (_current_pos + _ws))
+      {
+	_rec = _parent.subseq(_current_pos, _current_pos + _ws - 1);
+	_end = false;
+      }
+    else if(_include_final && _current_pos < _parent.size())
+      {
+	_rec = _parent.subseq(_current_pos, _parent.size() - 1);
+	_end = false; _include_final = false;
+      }
+    else
+      {
+	_end = true;
+      }
+  }
+
+  // Rewind a number of bases
+  void window_walker::rewind(size_t n)
+  {
+    if(_current_pos < n)
+      {
+	if(_include_final)
+	  {
+	    _rec = _parent.subseq(0, _current_pos);
+	    _begin = false; _include_final = false;
+	  }
+	else
+	  {
+	    _begin = true;
+	  }
+	_end = _current_pos <= (_parent.size() - 1) ? false : true;
+      }
+    else
+      {
+	_current_pos -= n;
+	_rec = _parent.subseq(_current_pos, _current_pos + _ws - 1);
+	_begin = false;
+	_end = _current_pos <= (_parent.size() - 1) ? false : true;
+      }
   }
   
 };

@@ -52,6 +52,7 @@ namespace FASTX {
      * bits are as follows:
      * Bit | Meaning |
      * ---:|:--------|
+     * 00000 | The record in NULL |
      * 00001 | The record is FASTQ formatted |
      * 00010 | The record is FASTA formatted |
      * 00100 | The record is a DNA sequence |
@@ -133,6 +134,16 @@ namespace FASTX {
 	   const std::string& qual, char seqtype);
 
     /**
+     * @brief Empty constructor.
+     *
+     * The Record object is going to be initialized with an empty string
+     * and as a non-valid type. 
+     * 
+     * @return An empty Record of no type
+     */
+    Record();
+
+    /**
      * @brief Translate a record to an AA record, one ORF. 
      *
      * @param orf The open reading frame: 0 for the first base, 1 or 2 for the next
@@ -185,9 +196,12 @@ namespace FASTX {
      *
      * @param width The width of the sliding window.
      * @param increment The increment of the window.
+     * @param include_final Should the final window be included 
+     * (even if it's not full length)
      * @return A vector of the sliding windows.
      */
-    std::vector<Record> window(length_t width, length_t increment) const;
+    std::vector<Record> window(length_t width, length_t increment,
+			       bool include_final = false) const;
 
     /**
      * @brief Get a numeric representation of the quality values.
@@ -304,6 +318,7 @@ namespace FASTX {
      *         or identical to b, false otherwise
      */
     friend bool operator<=(const Record& a, const Record& b);
+
   private:
     std::string _seq;
     std::string _qual;
@@ -454,6 +469,232 @@ namespace FASTX {
    * @param rec The wrapped Record object
    */
   std::ostream& operator<<(std::ostream& outstream, Wrap rec);
+
+  /**
+   * @brief Helper class to generate kmers on the fly while walking along
+   * a sequence
+   *
+   * For large numbers of kmers the `kmer()` method of the `Record` class
+   * can be quite memory intensive. This class provides an 'iterator-like'
+   * helper that constructs kmers on the fly.
+   */
+  class kmer_walker
+  {
+  public:
+    
+    /**
+     * @brief Constructor initializing at position 0
+     *
+     * This constructor will initialize the kmer walker at position
+     * 0 of the sequence.
+     *
+     * @param k The kmer size
+     * @param r A `Record` object that should be used to generate kmers
+     */
+    kmer_walker(size_t k, const Record& r);
+    
+    /**
+     * @brief Constructor initializing at a user defined position
+     *
+     * This constructor will initialize the walker at a position
+     * defined by the user.
+     *
+     * @param k The kmer size
+     * @param pos The start position of the walker
+     * @param r A `Record` object that should be used to generate kmers
+     */
+    kmer_walker(size_t k, size_t pos, const Record& r);
+
+    /**
+     * @brief Move the walker 1 position downstream
+     */
+    kmer_walker& operator++();
+
+    /**
+     * @brief Move the walker 1 position downstream
+     */
+    kmer_walker  operator++(int);
+
+    /**
+     * @brief Move the walker 1 position upstream
+     */
+    kmer_walker& operator--();
+
+    /**
+     * @brief Move the walker 1 position upstream
+     */
+    kmer_walker  operator--(int);
+
+    /**
+     * @brief Move the walker n positions downstream
+     *
+     * @param n The number od position that should be skipped
+     */
+    void         skip(size_t n);
+
+    /**
+     * @brief Move the walker n positions upstream
+     *
+     * @param n The number od position that should be rewound
+     */
+    void         rewind(size_t n);
+    
+    /**
+     * @brief Get a reference to the current kmer `Record` object
+     *
+     * @return An object of type `Record` that represents the current
+     * kmer
+     */
+    Record&      operator*();
+
+    /**
+     * @brief Get a copy of the current kmer `Record` object
+     *
+     * @return An object of type `Record` that represents the current
+     * kmer
+     */
+    Record       kmer();
+
+    /**
+     * @brief Check if the end of the sequence has been reached by the walker
+     *
+     * @return True if the end was reached, false otherwise
+     */
+    bool         end(){return _end;}
+
+    /**
+     * @brief Check if the beginning of the sequence has been reached by the walker
+     *
+     * @return True if the beginning was reached, false otherwise
+     */
+    bool         begin() {return _begin;}
+  private:
+    size_t  _k;
+    size_t  _current_pos;
+    Record  _rec;
+    bool    _end;
+    bool    _begin;
+    const Record& _parent;
+  };
+
+  /**
+   * @brief Helper class to generate sliding windows on the fly while walking along
+   * a sequence
+   *
+   * For large numbers of windows the `window()` method of the `Record` class
+   * can be quite memory intensive. This class provides an 'iterator-like'
+   * helper that constructs windows on the fly.
+   */
+  class window_walker
+  {
+  public:
+
+    /**
+     * @brief Constructor initializing at position 0
+     *
+     * This constructor will initialize the window walker at position
+     * 0 of the sequence. If at the end (or beginning if decrementing)
+     * a non full-length window is left, the `include_final` parameter
+     * governs if that window should be returned.
+     *
+     * @param ws The window size
+     * @param increment The increment or slide value of the window
+     * @param r A `Record` object that should be used to generate kmers
+     * @param include_final Should the final (incomplete) window be returned
+     */
+    window_walker(size_t ws, size_t increment, const Record& r,
+		  bool include_final = false);
+
+    /**
+     * @brief Constructor initializing at a user defined position
+     *
+     * This constructor will initialize the window walker at a user defined
+     * position in the sequence. If at the end (or beginning if decrementing)
+     * a non full-length window is left, the `include_final` parameter
+     * governs if that window should be returned.
+     *
+     * @param ws The window size
+     * @param increment The increment or slide value of the window
+     * @param pos The start position of the walker
+     * @param r A `Record` object that should be used to generate kmers
+     * @param include_final Should the final (incomplete) window be returned
+     */
+    window_walker(size_t ws, size_t increment, size_t pos,
+		  const Record& r, bool include_final = false);
+
+    /**
+     * @brief Move the walker downstream by the increment value
+     */
+    window_walker& operator++();
+
+    /**
+     * @brief Move the walker downstream by the increment value
+     */
+    window_walker  operator++(int);
+
+    /**
+     * @brief Move the walker upstream by the increment value
+     */
+    window_walker& operator--();
+
+    /**
+     * @brief Move the walker upstream by the increment value
+     */
+    window_walker  operator--(int);
+
+    /**
+     * @brief Get a reference to the current window `Record` object
+     *
+     * @return An object of type `Record` that represents the current
+     * window
+     */
+    Record&        operator*();
+
+    /**
+     * @brief Get a copy of the current kmer `Record` object
+     *
+     * @return An object of type `Record` that represents the current
+     * kmer
+     */
+    Record         window();
+
+    /**
+     * @brief Move the walker a number of positions downstream
+     *
+     * @param n The number of positions to skip
+     */
+    void           skip(size_t n);
+
+    /**
+     * @brief Move the walker a number of positions upstream
+     *
+     * @param n The number of positions to rewind
+     */
+    void           rewind(size_t n);
+    
+    /**
+     * @brief Check if the end of the sequence has been reached by the walker
+     *
+     * @return True if the end was reached, false otherwise
+     */
+    bool           end() {return _end;}
+
+    /**
+     * @brief Check if the beginning of the sequence has been reached by the walker
+     *
+     * @return True if the beginning was reached, false otherwise
+     */
+    bool           begin() {return _begin;}
+  private:
+    size_t  _ws;
+    size_t  _current_pos;
+    size_t  _increment;
+    Record  _rec;
+    bool    _end;
+    bool    _begin;
+    bool    _include_final;
+    const Record& _parent;
+  };
   
 }
 #endif
