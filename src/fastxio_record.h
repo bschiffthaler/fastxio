@@ -319,6 +319,24 @@ namespace FASTX {
      */
     friend bool operator<=(const Record& a, const Record& b);
 
+    /**
+     * @brief Concatenating operator for `Record` objects
+     *
+     * @param b Another record.
+     *
+     * @return A concatenated object of both `this` and `b`
+     */
+    Record operator+(const Record& b) const;
+
+    /**
+     * @brief Compound assignment for `Record` objects
+     *
+     * @param b Another record.
+     *
+     * @return An updated object of `this` and `b`
+     */
+    Record& operator+=(const Record& b);
+    
   private:
     std::string _seq;
     std::string _qual;

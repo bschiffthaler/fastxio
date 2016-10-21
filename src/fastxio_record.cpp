@@ -145,6 +145,24 @@ namespace FASTX {
     return outstream;
   }
 
+  //Compound assignment
+  Record& Record::operator+=(const Record& b)
+  {
+    _seq += b.get_seq();
+    _id  += b.get_id();
+    if(_type & FASTQ_TYPE)
+      _qual += b.get_qual();
+    return *this;
+  }
+
+  //Concatenation
+  Record Record::operator+(const Record& b) const
+  {
+    Record a_copy(*this);
+    a_copy += b;
+    return a_copy;
+  }
+
   
   std::vector<unsigned short> Record::get_numeric_qual(void) const
   {
