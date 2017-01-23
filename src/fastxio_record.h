@@ -144,6 +144,18 @@ namespace FASTX {
     Record();
 
     /**
+     * @brief Convert DNA -> RNA.
+     *
+     */
+    void to_rna(void);
+
+    /**
+     * @brief Convert RNA -> DNA.
+     *
+     */
+    void to_dna(void);
+    
+    /**
      * @brief Translate a record to an AA record, one ORF. 
      *
      * @param orf The open reading frame: 0 for the first base, 1 or 2 for the next

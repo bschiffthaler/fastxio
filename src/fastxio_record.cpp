@@ -85,6 +85,42 @@ namespace FASTX {
   {
   }
 
+  void Record::to_rna(void)
+  {
+    // Already RNA
+    if(_type & RNA_SEQTYPE) return;
+    if(_type & AA_SEQTYPE) throw std::runtime_error("Getting RNAs from AA is not implemented");
+    
+    _type = (_type | RNA_SEQTYPE);
+    _type = (_type ^ DNA_SEQTYPE);
+
+    for(auto it = _seq.begin(); it != _seq.end(); it++)
+      {
+        if( (*it) == 'T' )
+          *it = 'U';
+        else if( (*it) == 't' )
+          *it = 'u';
+      }
+  }
+
+  void Record::to_dna(void)
+  {
+    // Already RNA
+    if(_type & DNA_SEQTYPE) return;
+    if(_type & AA_SEQTYPE) throw std::runtime_error("Getting DNAs from AA is not implemented");
+
+    _type = (_type | DNA_SEQTYPE);
+    _type = (_type ^ RNA_SEQTYPE);
+
+    for(auto it = _seq.begin(); it != _seq.end(); it++)
+      {
+        if( (*it) == 'U' )
+          *it = 'T';
+        else if( (*it) == 'u' )
+          *it = 't';
+      }
+  }
+  
   bool Record::validate(void) const
   {
     bool ret = true;
