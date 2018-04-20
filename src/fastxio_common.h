@@ -27,6 +27,20 @@
 #define RNA_SEQTYPE 8
 #define AA_SEQTYPE 16
 
+#ifdef __GNU__
+#ifndef PARALLEL_SORT
+#include <parallel/algorithm>
+#define SORT __gnu_parallel::sort
+#define PARALLEL_SORT
+#endif
+#else
+#ifndef SINGLE_SORT
+#include <algorithm>
+#define SORT std::sort
+#define SINGLE_SORT
+#endif
+#endif
+
 namespace FASTX {
   
   /** 
@@ -37,7 +51,13 @@ namespace FASTX {
   /** 
    * @brief Type to store scores in Smith Waterman matrix 
    */
-  typedef long int score_t; 
+  typedef long int score_t;
+
+  template<typename T>
+  double lexical_double(T arg)
+  {
+    return std::stod(std::to_string(arg));
+  }
 
   /**
   * @brief This global struct holds all translation/complementation tables

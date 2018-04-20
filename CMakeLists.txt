@@ -5,6 +5,8 @@ if(NO_CHECKING)
    SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -DNO_ERROR_CHECKING=1" )
 endif()
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 file(GLOB SOURCES src/*.cpp)
 file(GLOB GZSTREAM gzstream/*.cpp)
 file(GLOB BZ2STREAM bz2stream/*.cpp)

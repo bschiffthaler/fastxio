@@ -9,6 +9,7 @@ namespace FASTX {
 
   // Forward declarations
   class Record;
+  class NucPercent;
   
   /** 
    * @brief Helper class to count nucleotide frequencies
@@ -19,6 +20,7 @@ namespace FASTX {
    */
   class NucFrequency {
   public:
+    friend class NucPercent;
     /**
      * @brief Printing method (prints: Nucleotide<TAB>Count)
      *
@@ -26,6 +28,8 @@ namespace FASTX {
      * @param nuc A NucFrequency object
      */
     friend std::ostream& operator<<(std::ostream& outstream, const NucFrequency nuc);
+
+    friend std::ostream& operator<<(std::ostream& outstream, NucPercent rhs);
     
     /**
      * @brief Add all nucleotides in a string to the table
@@ -65,6 +69,47 @@ namespace FASTX {
     std::map<char, length_t> _freq_table;
   };
 
+   /**
+   * @brief Helper class to wrap FASTA when printing
+   *
+   * Typically, FASTA records are printed to wrap lines at
+   * 80 characters per column. This method does just this.
+   * 
+   * @warning Note that FASTQ records cannot be printed with this method
+   * because they need consitently four lines per record.
+   * See the example source `print_wrapped.cpp`.
+   */
+  class NucPercent
+  {
+  public:
+    
+    /**
+     * @brief Constructor from const NucFrequency
+     *
+     * @param freq A NucFrequency object
+     */
+    NucPercent(const NucFrequency& freq): _freq(freq) {}
+    
+    /**
+     * @brief Overload of operator() to handle formatting and passing to an std::ostream
+     *
+     * This method is used internally to be called from operator<<
+     *
+     * @param outstream The output stream
+     */
+    std::ostream& operator()(std::ostream& outstream) const;
+
+    /**
+     * @brief Overloaded operator<< to print to an ostream
+     *
+     * @param outstream The output stream
+     * @param rec The wrapped Record object
+     */
+    friend std::ostream& operator<<(std::ostream& outstream, NucPercent rhs);
+  private:
+    const NucFrequency& _freq;
+  };
+
   /**
    * @brief Printing method (prints: Nucleotide<TAB>Count)
    *
@@ -72,6 +117,8 @@ namespace FASTX {
    * @param nuc A NucFrequency object
    */
   std::ostream& operator<<(std::ostream& outstream, const NucFrequency nuc);
+
+  std::ostream& operator<<(std::ostream& outstream, NucPercent rhs);
 
   /**
    * @brief Examples
