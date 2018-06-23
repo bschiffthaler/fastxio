@@ -47,9 +47,14 @@ void NucFrequency::add(const Record& rec)
   }
 }
 
-length_t NucFrequency::operator[](char nuc) const
+length_t NucFrequency::at(char nuc) const
 {
   return _freq_table.at(nuc);
+}
+
+length_t NucFrequency::operator[](char nuc)
+{
+  return _freq_table[nuc];
 }
 
 std::vector<char> NucFrequency::letters(void) const

@@ -46,12 +46,20 @@ namespace FASTX {
     void add(const Record& str);
     
     /**
+     * @brief Extract data for a letter with bounds checking
+     *
+     * @param nuc The letter of interest
+     * @return Counts of the letter of interest
+     */
+    length_t at(char nuc) const;
+
+    /**
      * @brief Extract data for a letter
      *
      * @param nuc The letter of interest
      * @return Counts of the letter of interest
      */
-    length_t operator[](char nuc) const;
+    length_t operator[](char nuc);
 
     /**
      * @brief Get a vector of the letters in the count table

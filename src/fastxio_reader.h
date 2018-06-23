@@ -43,6 +43,25 @@ namespace FASTX {
      * @return The next character, or EOF.
      */
     char peek(void);
+
+    /**
+     * @brief Get stream offset;
+     *
+     * This method passes `tellg()` to the underlying stream. Currently
+     * this will only be correct for *uncompressed* streams.
+     *
+     * @return File offset
+     */
+    int tell(void){ return _istream->tellg(); }
+
+    /**
+     * @brief Seek to offset;
+     *
+     * This method passes `seekg()` to the underlying stream. Currently
+     * this will only be correct for *uncompressed* streams.
+     *
+     */
+    void seek(int offset){ _istream->seekg(offset); }
   private:
     std::unique_ptr<std::istream> _istream;
     const char _seqtype;

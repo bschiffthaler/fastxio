@@ -32,7 +32,7 @@ target_link_libraries(fastxio z bz2)
 target_link_libraries(fastxioS z bz2)
 
 INSTALL(TARGETS fastxio fastxioS
-        DESTINATION  /usr/local/lib)
+        DESTINATION lib)
 
 INSTALL(FILES ${HEADERS} ${EXTHEADERS}
-	DESTINATION /usr/local/include)
+	DESTINATION include/fastxio)
