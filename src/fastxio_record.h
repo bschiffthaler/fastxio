@@ -194,6 +194,7 @@ namespace FASTX {
      * @return A reverse complement of the record.
      */
     Record rc(void) const;
+    Record operator!(void) const {return this->rc();}
 
     /**
      * @brief Get all k-mers of length k.
@@ -348,6 +349,8 @@ namespace FASTX {
      * @return An updated object of `this` and `b`
      */
     Record& operator+=(const Record& b);
+
+    friend class MinHash;
     
   private:
     std::string _seq;

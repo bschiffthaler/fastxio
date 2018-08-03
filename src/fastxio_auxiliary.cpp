@@ -130,6 +130,7 @@ namespace FASTX {
 			    const std::map<char, std::vector<char> >& translation_table,
                             std::set<char>& unambiguous_nuc)
   {
+    std::cerr << "call\n";
     bool all_unambiguous = true;
     size_t position = 0;
     for(char c : rec.get_seq())

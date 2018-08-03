@@ -88,8 +88,10 @@ Record::Record(void) :
 void Record::to_rna(void)
 {
   // Already RNA
-  if (_type & RNA_SEQTYPE) return;
-  if (_type & AA_SEQTYPE) throw std::runtime_error("Getting RNAs from AA is not implemented");
+  if (_type & RNA_SEQTYPE) 
+    return;
+  if (_type & AA_SEQTYPE) 
+    throw std::runtime_error("Getting RNAs from AA is not implemented");
 
   _type = (_type | RNA_SEQTYPE);
   _type = (_type ^ DNA_SEQTYPE);
@@ -106,8 +108,10 @@ void Record::to_rna(void)
 void Record::to_dna(void)
 {
   // Already RNA
-  if (_type & DNA_SEQTYPE) return;
-  if (_type & AA_SEQTYPE) throw std::runtime_error("Getting DNAs from AA is not implemented");
+  if (_type & DNA_SEQTYPE) 
+    return;
+  if (_type & AA_SEQTYPE) 
+    throw std::runtime_error("Getting DNAs from AA is not implemented");
 
   _type = (_type | DNA_SEQTYPE);
   _type = (_type ^ RNA_SEQTYPE);
@@ -129,7 +133,8 @@ bool Record::validate(void) const
   {
     if (_qual.size() != _seq.size())
     {
-      throw std::runtime_error("Qual and sequence are not the same length for: " + _id);
+      throw std::runtime_error("Qual and sequence are not the same "
+                               "length for: " + _id);
       ret = false;
     }
   }
@@ -152,7 +157,8 @@ bool Record::validate(void) const
     {
       if (global.aa_alphabet.find(c) == global.aa_alphabet.end())
       {
-        throw std::runtime_error("Unknown character " + std::to_string(c) + " in sequence: " + _id);
+        throw std::runtime_error("Unknown character " + std::to_string(c) + 
+                                 " in sequence: " + _id);
         ret = false;
       }
     }
@@ -163,7 +169,8 @@ bool Record::validate(void) const
     {
       if (c < 33 || c > 104)
       {
-        throw std::runtime_error("Impossible quality score " + std::to_string(c) + " in sequence: " + _id);
+        throw std::runtime_error("Impossible quality score " + 
+                                 std::to_string(c) + " in sequence: " + _id);
         ret = false;
       }
     }

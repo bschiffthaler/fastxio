@@ -2,3 +2,4 @@ build/*
 .vscode/*
 doc/*
 test
+.DS_Store
