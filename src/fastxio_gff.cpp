@@ -2,6 +2,7 @@
 #include <fstream>
 #include <memory>
 #include <algorithm>
+#include <cmath>
 #include <fastxio_auxiliary.h>
 #include <fastxio_common.h>
 #include <fastxio_gff.h>
