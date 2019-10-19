@@ -1,3 +1,6 @@
 [submodule "external/smhasher"]
 	path = external/smhasher
 	url = https://github.com/aappleby/smhasher
+[submodule "external/libbs"]
+	path = external/libbs
+	url = https://github.com/bschiffthaler/libbs

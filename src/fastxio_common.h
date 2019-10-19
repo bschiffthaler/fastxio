@@ -1,4 +1,4 @@
-/** 
+/**
  * Common data variables and macros for fastx_io
  *
  * This file contains global dictionaries for nuleotide to
@@ -41,64 +41,67 @@
 #endif
 #endif
 
+/**
+* Root namespace
+*/
 namespace FASTX {
-  
-  /** 
-   * @brief Type to store length information of sequences 
-   */
-  typedef unsigned long length_t;
-  
-  /** 
-   * @brief Type to store scores in Smith Waterman matrix 
-   */
-  typedef long int score_t;
 
-  template<typename T>
-  double lexical_double(T arg)
-  {
-    return std::stod(std::to_string(arg));
-  }
+/**
+ * @brief Type to store length information of sequences
+ */
+typedef unsigned long length_t;
+
+/**
+ * @brief Type to store scores in Smith Waterman matrix
+ */
+typedef long int score_t;
+
+template<typename T>
+double lexical_double(T arg)
+{
+  return std::stod(std::to_string(arg));
+}
+
+/**
+* @brief This global struct holds all translation/complementation tables
+*/
+struct GData
+{
+  /**
+   * @brief All nucleotides (IUPAC notation)
+   */
+  static const std::set<char> nuc_alphabet;
 
   /**
-  * @brief This global struct holds all translation/complementation tables
-  */
-  struct GData
-  {
-    /**
-     * @brief All nucleotides (IUPAC notation)
-     */
-    static const std::set<char> nuc_alphabet;
+   * @brief All amino acid codes (IUPAC notation)
+   */
+  static const std::set<char> aa_alphabet;
 
-    /**
-     * @brief All amino acid codes (IUPAC notation)
-     */
-    static const std::set<char> aa_alphabet;
+  /**
+   * @brief Reverse complementation table
+   */
+  static const std::map<char, char> rc;
 
-    /**
-     * @brief Reverse complementation table
-     */
-    static const std::map<char, char> rc;
+  /**
+   * @brief Disambiguation for ambiguous IUPAC DNA/RNA codes
+   */
+  static const std::map<char, std::vector<char> > enum_iupac_dna;
 
-    /**
-     * @brief Disambiguation for ambiguous IUPAC DNA/RNA codes
-     */
-    static const std::map<char, std::vector<char> > enum_iupac_dna;
+  /**
+   * @brief Disambiguation for ambiguous IUPAC RNA codes
+   */
+  static const std::map<char, std::vector<char> > enum_iupac_rna;
 
-    /**
-     * @brief Disambiguation for ambiguous IUPAC RNA codes
-     */
-    static const std::map<char, std::vector<char> > enum_iupac_rna;
+  /**
+   * @brief Triplett nucleotide to AA translation (DNA)
+   */
+  static const std::map<std::string, char> codon_to_protein_dna;
 
-    /**
-     * @brief Triplett nucleotide to AA translation (DNA)
-     */
-    static const std::map<std::string, char> codon_to_protein_dna;
-
-    /**
-     * @brief Triplett nucleotide to AA translation (RNA)
-     */
-    static const std::map<std::string, char> codon_to_protein_rna;
-  };//struct GData
+  /**
+   * @brief Triplett nucleotide to AA translation (RNA)
+   */
+  static const std::map<std::string, char> codon_to_protein_rna;
+};//struct GData
 
 } // namespace FASTX
 #endif

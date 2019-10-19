@@ -18,7 +18,7 @@ struct minhash_sim_t
 
 /**
    * @brief Compute the number of intersects of two unordered sets.
-   * 
+   *
    * @param lhs First set
    * @param rhs Second set
    * @return The number of items shared between the two sets.
@@ -26,7 +26,7 @@ struct minhash_sim_t
 uint32_t set_isec(std::unordered_set<uint32_t>& lhs,
                   std::unordered_set<uint32_t>& rhs);
 
-/** 
+/**
    * @brief kmer overlap based on MinHash.
    *
    * This class will produce kmer overlaps using a locality sensitive
@@ -70,10 +70,10 @@ public:
      * @brief Get the ID of an index sequence.
      *
      * @param idx The index that was returned by e.g.: `MinHash::max_similarity()`.
-     * 
+     *
      * @return The ID of the sequence that matches the index.
      */
-  std::string& id(uint32_t idx){return _ids[idx];}
+  std::string& id(uint32_t idx) {return _ids[idx];}
 private:
   // Number of hashes
   const uint32_t _j;

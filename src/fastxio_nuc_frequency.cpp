@@ -68,11 +68,11 @@ std::vector<char> NucFrequency::letters(void) const
 std::ostream& operator<<(std::ostream& outstream, NucPercent rhs)
 {
   uint64_t sum = 0;
-  for(auto& i : rhs._freq._freq_table)
+  for (auto& i : rhs._freq._freq_table)
     sum += i.second;
 
   double dsum = lexical_double(sum);
-  for(auto& i : rhs._freq._freq_table)
+  for (auto& i : rhs._freq._freq_table)
   {
     outstream << i.first << '\t' << lexical_double(i.second) / dsum * 100 << '\n';
   }

@@ -48,7 +48,7 @@ void MinHash::add(const Record& rec, bool complement)
   _ids.push_back(rec._id);
   if (complement)
   {
-    Record tmp = !rec;   
+    Record tmp = !rec;
     this->add(tmp, false);
   }
 }
@@ -75,7 +75,7 @@ minhash_sim_t MinHash::max_similarity(const Record& rec)
 
   res.ji = -std::numeric_limits<double>::infinity();
   uint32_t ctr = 0;
-  for(auto& comp : _hashes)
+  for (auto& comp : _hashes)
   {
     uint32_t hits = set_isec(hashset, comp);
     double hitsd = hits;

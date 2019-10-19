@@ -3,3 +3,5 @@ build/*
 doc/*
 test
 .DS_Store
+apps/*/build
+apps/*/example
