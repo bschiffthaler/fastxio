@@ -79,8 +79,8 @@ int main(int argc, char ** argv)
     // Prepare to read target sequences into a vector
     // as batches
     FASTX::Reader test(target.c_str(), DNA_SEQTYPE);
-    std::vector<FASTX::Record> tvec;
-    tvec.reserve(batch_size);
+    // std::vector<FASTX::Record> tvec;
+    // tvec.reserve(batch_size);
 
     // Prepare output files
     std::ofstream clean_ost;
@@ -95,53 +95,63 @@ int main(int argc, char ** argv)
     omp_init_lock(&cplock);
     omp_set_num_threads(threads);
 
-    // Read all target sequences
-    while (test.peek() != EOF)
+    #pragma omp parallel
     {
-      // Add to batch
-      tvec.push_back(test.next());
-      if (tvec.size() == batch_size || test.peek() == EOF)
+      #pragma omp single
       {
-        // Process batches in parallel
-        #pragma omp parallel for
-        for (uint64_t i = 0; i < tvec.size(); i++)
+        // Read all target sequences
+        while (test.peek() != EOF)
         {
-          // Get reference record with best similary to target record
-          auto sim = hash.max_similarity(tvec[i]);
-          // Write output only one thread at a time
-          // target_id  reference_id  hits  nhash_a nhash_b jaccard_similarity
-          omp_set_lock(&cplock);
-          if (print_stats)
+          // Add to batch
+          // tvec.push_back(test.next());
+          // if (tvec.size() == batch_size || test.peek() == EOF)
+          // {
+          //   // Process batches in parallel
+          //   #pragma omp parallel for
+          //   for (uint64_t i = 0; i < tvec.size(); i++)
+          //   {
+          auto seq = test.next();
+          #pragma omp task default(shared) firstprivate(seq)
           {
-            // Write match statistics
-            std::cout
-                << tvec[i].get_id() << '\t'
-                << hash.id(sim.idx) << '\t'
-                << sim.hits << '\t'
-                << sim.asize << '\t'
-                << sim.bsize << '\t'
-                << sim.ji << '\n';
-          }
-          // Write FASTX
-          if (sim.ji > sim_cutoff)
-          {
-            if (cont_out != "")
+            // Get reference record with best similary to target record
+            auto sim = hash.max_similarity(seq);
+            // Write output only one thread at a time
+            // target_id  reference_id  hits  nhash_a nhash_b jaccard_similarity
+            omp_set_lock(&cplock);
+            if (print_stats)
             {
-              cont_ost
-                  << tvec[i].get_id() << " || " << hash.id(sim.idx) << '\n'
-                  << tvec[i].get_seq() << '\n';
+              // Write match statistics
+              std::cout
+                  << seq.get_id() << '\t'
+              << hash.id(sim.idx) << '\t'
+              << sim.hits << '\t'
+              << sim.asize << '\t'
+              << sim.bsize << '\t'
+              << sim.ji << '\n';
             }
-          }
-          else if (clean_out != "")
-          {
-            clean_ost << tvec[i] << '\n';
-          }
+            // Write FASTX
+            if (sim.ji > sim_cutoff)
+            {
+              if (cont_out != "")
+              {
+                cont_ost
+                    << seq.get_id() << " || " << hash.id(sim.idx) << '\n'
+                    << seq.get_seq() << '\n';
+              }
+            }
+            else if (clean_out != "")
+            {
+              clean_ost << seq << '\n';
+            }
 
-          omp_unset_lock(&cplock);
+            omp_unset_lock(&cplock);
+          }
+          // Reset batch vector
+          //   tvec.clear();
+          //   tvec.shrink_to_fit();
+          // }
         }
-        // Reset batch vector
-        tvec.clear();
-        tvec.shrink_to_fit();
+        #pragma omp taskwait
       }
     }
   }
