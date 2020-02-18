@@ -51,6 +51,7 @@ target_link_libraries(fastxioS z bz2 bs)
 ###
 
 add_subdirectory(apps/extr_prom)
+add_subdirectory(apps/contaminant_filter)
 
 if (PERFTOOLS)
   target_link_libraries(fastxio profiler)
