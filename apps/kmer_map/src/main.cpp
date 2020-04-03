@@ -19,6 +19,14 @@ struct offset_t
   uint64_t pos;
 };
 
+struct aln_t
+{
+  offset_t off;
+  int penalty = 0;
+  std::string snp = "";
+  uint64_t snp_pos = 0;
+};
+
 struct k_map_t
 {
   robin_hood::unordered_map<std::string, std::vector<offset_t>> map;
@@ -93,40 +101,98 @@ void map(std::string const & kmer_file, k_map_t const & kmap)
     auto seqptr_rc = r_rc.get_seq_ptr();
     auto mapptr_rc = kmap.map.find((*seqptr_rc));
 
-    std::vector<offset_t> hits;
+    std::vector<aln_t> hits;
 
-    for (uint64_t n = 0; n < seqptr->size(); n++)
+    bool have_exact = false;
+
+    if (mapptr != kmap.map.end())
     {
-      for (uint64_t m = 0; m < 4; m++)
+      // First check exact matches
+      for (offset_t const & hit : mapptr->second)
       {
-        std::string scopy = (*seqptr);
-        scopy[n] = nucs[m];
-        auto mapptr = kmap.map.find(scopy);
-        if (mapptr != kmap.map.end())
+        aln_t x;
+        x.off = hit;
+        x.penalty = 0;
+        x.snp = "-";
+        x.snp_pos = 0;
+        hits.push_back(x);
+      }
+      have_exact = true;
+    }
+    if (mapptr != kmap.map.end())
+    {
+      for (offset_t const & hit : mapptr_rc->second)
+      {
+        aln_t x;
+        x.off = hit;
+        x.penalty = 0;
+        x.snp = "-";
+        x.snp_pos = 0;
+        hits.push_back(x);
+      }
+      have_exact = true;
+    }
+
+    if (! have_exact)
+    {
+      // Check mismatched kmers
+      for (uint64_t n = 0; n < seqptr->size(); n++)
+      {
+        for (uint64_t m = 0; m < 4; m++)
         {
-          for (offset_t const & hit : mapptr->second)
+          if (nucs[m] == (*seqptr)[n])
           {
-            hits.push_back(hit);
+            continue;
+          }
+          std::string scopy = (*seqptr);
+          scopy[n] = nucs[m];
+          mapptr = kmap.map.find(scopy);
+          if (mapptr != kmap.map.end())
+          {
+            for (offset_t const & hit : mapptr->second)
+            {
+              aln_t x;
+              x.off = hit;
+              x.penalty = 1;
+              x.snp_pos = n;
+              x.snp += (*seqptr)[n];
+              x.snp += "/";
+              x.snp += nucs[m];
+              hits.push_back(x);
+            }
+          }
+        }
+      }
+      // Same for reverse complement
+      for (uint64_t n = 0; n < seqptr_rc->size(); n++)
+      {
+        for (uint64_t m = 0; m < 4; m++)
+        {
+          if (nucs[m] == (*seqptr_rc)[n])
+          {
+            continue;
+          }
+          std::string scopy = (*seqptr_rc);
+          scopy[n] = nucs[m];
+          mapptr = kmap.map.find(scopy);
+          if (mapptr != kmap.map.end())
+          {
+            for (offset_t const & hit : mapptr->second)
+            {
+              aln_t x;
+              x.off = hit;
+              x.penalty = 1;
+              x.snp_pos = n;
+              x.snp += (*seqptr)[n];
+              x.snp += "/";
+              x.snp += nucs[m];
+              hits.push_back(x);
+            }
           }
         }
       }
     }
-    for (uint64_t n = 0; n < seqptr_rc->size(); n++)
-    {
-      for (uint64_t m = 0; m < 4; m++)
-      {
-        std::string scopy = (*seqptr_rc);
-        scopy[n] = nucs[m];
-        auto mapptr = kmap.map.find(scopy);
-        if (mapptr != kmap.map.end())
-        {
-          for (offset_t const & hit : mapptr->second)
-          {
-            hits.push_back(hit);
-          }
-        }
-      }
-    }
+
 
     #pragma omp critical
     {
@@ -134,17 +200,23 @@ void map(std::string const & kmer_file, k_map_t const & kmap)
       {
         std::cout <<
                   *seqptr << '\t' <<
-                  "NA\t"
+                  "NA\t" <<
+                  "NA\t" <<
+                  "NA\t" <<
+                  "NA\t" <<
                   "NA\n";
       }
       else
       {
-        for (offset_t const & hit : hits)
+        for (aln_t const & hit : hits)
         {
           std::cout <<
                     *seqptr << '\t' <<
-                    kmap.ids[hit.chr] << '\t' <<
-                    hit.pos << '\n';
+                    kmap.ids[hit.off.chr] << '\t' <<
+                    hit.off.pos << '\t' <<
+                    hit.penalty << '\t' <<
+                    hit.snp_pos << '\t' <<
+                    hit.snp << '\n';
         }
       }
     }
