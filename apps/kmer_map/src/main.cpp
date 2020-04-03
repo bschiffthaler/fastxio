@@ -46,7 +46,8 @@ k_map_t build_reference(std::string const & genome_file, uint64_t k)
     throw std::runtime_error("Error opening genome file.");
   }
   uint64_t id = 0;
-  while(R.peek() != EOF)
+  uint64_t nuc = 0;
+  while (R.peek() != EOF)
   {
     FASTX::Record r = R.next();
     std::cerr << "Processing: " << r.get_id() << "...\n";
@@ -61,6 +62,9 @@ k_map_t build_reference(std::string const & genome_file, uint64_t k)
       start++;
       stop++;
     }
+    nuc += r.size();
+    std::cerr << "Have " << nuc << " nucleotides\n";
+    std::cerr << "Have " << ret.map.size() << " kmers\n";
     id++;
   }
   return ret;
@@ -69,26 +73,44 @@ k_map_t build_reference(std::string const & genome_file, uint64_t k)
 void map(std::string const & kmer_file, k_map_t const & kmap)
 {
   FASTX::Reader R(kmer_file.c_str(), DNA_SEQTYPE);
-  while(R.peek() != EOF)
+  while (R.peek() != EOF)
   {
     FASTX::Record r = R.next();
+    FASTX::Record r_rc = !r;
+
     auto seqptr = r.get_seq_ptr();
     auto mapptr = kmap.map.find((*seqptr));
-    if (mapptr == kmap.map.end())
+    auto seqptr_rc = r_rc.get_seq_ptr();
+    auto mapptr_rc = kmap.map.find((*seqptr_rc));
+
+    if (mapptr == kmap.map.end() && mapptr_rc == kmap.map.end())
     {
       std::cout <<
-        *seqptr << '\t' <<
-        "NA\t"
-        "NA\n";
+                *seqptr << '\t' <<
+                "NA\t"
+                "NA\n";
     }
     else
     {
-      for (uint64_t i = 0; i < mapptr->second.size(); i++)
+      if (mapptr != kmap.map.end())
       {
-        std::cout <<
-          *seqptr << '\t' <<
-          kmap.ids[mapptr->second[i].chr] << '\t' <<
-          mapptr->second[i].pos << '\n';
+        for (uint64_t i = 0; i < mapptr->second.size(); i++)
+        {
+          std::cout <<
+                    *seqptr << '\t' <<
+                    kmap.ids[mapptr->second[i].chr] << '\t' <<
+                    mapptr->second[i].pos << '\n';
+        }
+      }
+      if (mapptr_rc != kmap.map.end())
+      {
+        for (uint64_t i = 0; i < mapptr_rc->second.size(); i++)
+        {
+          std::cout <<
+                    *seqptr << '\t' <<
+                    kmap.ids[mapptr_rc->second[i].chr] << '\t' <<
+                    mapptr_rc->second[i].pos << '\n';
+        }
       }
     }
   }
@@ -130,10 +152,11 @@ int main(int argc, char const ** argv)
     vm.notify();
 
     uint64_t k = get_k(opts.kmer_fasta);
+    std::cerr << "K: " << k << '\n';
     k_map_t kmap = build_reference(opts.genome_fasta, k);
     map(opts.kmer_fasta, kmap);
   }
-  catch(std::exception& e)
+  catch (std::exception& e)
   {
     std::cerr << "Exception: " << e.what() << '\n';
     return 1;
