@@ -38,6 +38,7 @@ uint64_t get_k(std::string const & kmer_file)
 
 k_map_t build_reference(std::string const & genome_file, uint64_t k)
 {
+  std::cerr << "Building index...\n";
   k_map_t ret;
   FASTX::Reader R(genome_file.c_str(), DNA_SEQTYPE);
   if (R.peek() == EOF)
@@ -48,6 +49,7 @@ k_map_t build_reference(std::string const & genome_file, uint64_t k)
   while(R.peek() != EOF)
   {
     FASTX::Record r = R.next();
+    std::cerr << "Processing: " << r.get_id() << "...\n";
     ret.ids.push_back(r.get_id());
     auto seq_ptr = r.get_seq_ptr();
     uint64_t start = 0;
