@@ -3,6 +3,7 @@
 #include <fastxio_record.h>
 #include <fastxio_reader.h>
 #include "robin_hood.h"
+#include <omp.h>
 
 namespace po = boost::program_options;
 
@@ -73,43 +74,77 @@ k_map_t build_reference(std::string const & genome_file, uint64_t k)
 void map(std::string const & kmer_file, k_map_t const & kmap)
 {
   FASTX::Reader R(kmer_file.c_str(), DNA_SEQTYPE);
+  std::vector<FASTX::Record> buffer;
+  char const * nucs = "ACGT";
+
   while (R.peek() != EOF)
   {
     FASTX::Record r = R.next();
-    FASTX::Record r_rc = !r;
+    buffer.push_back(r);
+  }
 
+  #pragma omp parallel for
+  for (uint64_t i = 0; i < buffer.size(); i++)
+  {
+    FASTX::Record r = buffer[i];
+    FASTX::Record r_rc = !r;
     auto seqptr = r.get_seq_ptr();
     auto mapptr = kmap.map.find((*seqptr));
     auto seqptr_rc = r_rc.get_seq_ptr();
     auto mapptr_rc = kmap.map.find((*seqptr_rc));
 
-    if (mapptr == kmap.map.end() && mapptr_rc == kmap.map.end())
+    std::vector<offset_t> hits;
+
+    for (uint64_t n = 0; n < seqptr->size(); n++)
     {
-      std::cout <<
-                *seqptr << '\t' <<
-                "NA\t"
-                "NA\n";
-    }
-    else
-    {
-      if (mapptr != kmap.map.end())
+      for (uint64_t m = 0; m < 4; m++)
       {
-        for (uint64_t i = 0; i < mapptr->second.size(); i++)
+        std::string scopy = (*seqptr);
+        scopy[n] = nucs[m];
+        auto mapptr = kmap.map.find(scopy);
+        if (mapptr != kmap.map.end())
         {
-          std::cout <<
-                    *seqptr << '\t' <<
-                    kmap.ids[mapptr->second[i].chr] << '\t' <<
-                    mapptr->second[i].pos << '\n';
+          for (offset_t const & hit : mapptr->second)
+          {
+            hits.push_back(hit);
+          }
         }
       }
-      if (mapptr_rc != kmap.map.end())
+    }
+    for (uint64_t n = 0; n < seqptr_rc->size(); n++)
+    {
+      for (uint64_t m = 0; m < 4; m++)
       {
-        for (uint64_t i = 0; i < mapptr_rc->second.size(); i++)
+        std::string scopy = (*seqptr_rc);
+        scopy[n] = nucs[m];
+        auto mapptr = kmap.map.find(scopy);
+        if (mapptr != kmap.map.end())
+        {
+          for (offset_t const & hit : mapptr->second)
+          {
+            hits.push_back(hit);
+          }
+        }
+      }
+    }
+
+    #pragma omp critical
+    {
+      if (hits.size() == 0)
+      {
+        std::cout <<
+                  *seqptr << '\t' <<
+                  "NA\t"
+                  "NA\n";
+      }
+      else
+      {
+        for (offset_t const & hit : hits)
         {
           std::cout <<
                     *seqptr << '\t' <<
-                    kmap.ids[mapptr_rc->second[i].chr] << '\t' <<
-                    mapptr_rc->second[i].pos << '\n';
+                    kmap.ids[hit.chr] << '\t' <<
+                    hit.pos << '\n';
         }
       }
     }

@@ -7,7 +7,8 @@ add_executable(KmerMap src/main.cpp)
 set_property(TARGET KmerMap PROPERTY CXX_STANDARD 11)
 
 find_package(Boost COMPONENTS program_options REQUIRED)
+find_package(OpenMP COMPONENTS CXX REQUIRED)
 
 target_include_directories(KmerMap PUBLIC ${Boost_INCLUDE_DIRS})
 target_include_directories(KmerMap PUBLIC "../../src") 
-target_link_libraries(KmerMap ${Boost_LIBRARIES} fastxio)
+target_link_libraries(KmerMap ${Boost_LIBRARIES} OpenMP::OpenMP_CXX fastxio)
