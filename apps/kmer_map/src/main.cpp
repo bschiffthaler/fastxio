@@ -119,7 +119,7 @@ void map(std::string const & kmer_file, k_map_t const & kmap)
       }
       have_exact = true;
     }
-    if (mapptr != kmap.map.end())
+    if (mapptr_rc != kmap.map.end())
     {
       for (offset_t const & hit : mapptr_rc->second)
       {
