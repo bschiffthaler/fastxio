@@ -10,7 +10,7 @@
 #include <matrix.h>
 #include <fastxio_common.h>
 #include <fastxio_nuc_frequency.h>
-#include "../external/libbs/src/str_manip.h"
+#include <str_manip.h>
 
 namespace FASTX {
 
@@ -740,6 +740,21 @@ public:
    * @return True if the beginning was reached, false otherwise
    */
   bool           begin() {return _begin;}
+
+  std::pair<size_t, size_t> get_coord() {
+    if ((_current_pos + _ws) >= _parent.size())
+    {
+      return std::pair<size_t, size_t>(_current_pos, _parent.size() - _current_pos);
+    }
+    else
+    {
+      return std::pair<size_t, size_t>(_current_pos, _ws);
+    }
+  }
+
+  std::string get_parent_id() {
+    return _parent.get_id();
+  }
 private:
   size_t  _ws;
   size_t  _current_pos;

@@ -563,7 +563,7 @@ window_walker::window_walker(size_t ws, size_t increment,
   else if (_include_final)
   {
     _rec = _parent.subseq(0, _parent.size() - 1);
-    _end = false; _include_final = false;
+    _end = false;
   }
   else
   {
@@ -587,7 +587,7 @@ window_walker::window_walker(size_t ws, size_t increment,
   else if (_include_final && _current_pos < _parent.size())
   {
     _rec = _parent.subseq(_current_pos, _parent.size() - 1);
-    _end = false; _include_final = false;
+    _end = false;
   }
   else
   {
@@ -609,7 +609,7 @@ window_walker& window_walker::operator++()
   else if (_include_final && _current_pos < _parent.size())
   {
     _rec = _parent.subseq(_current_pos, _parent.size() - 1);
-    _end = false; _include_final = false;
+    _end = false;
   }
   else
   {
@@ -632,7 +632,7 @@ window_walker window_walker::operator++(int)
   else if (_include_final && _current_pos < _parent.size())
   {
     _rec = _parent.subseq(_current_pos, _parent.size() - 1);
-    _end = false; _include_final = false;
+    _end = false;
   }
 
   else
@@ -650,7 +650,7 @@ window_walker& window_walker::operator--()
     if (_include_final)
     {
       _rec = _parent.subseq(0, _current_pos);
-      _begin = false; _include_final = false;
+      _begin = false;
     }
     else
     {
@@ -677,7 +677,7 @@ window_walker window_walker::operator--(int)
     if (_include_final)
     {
       _rec = _parent.subseq(0, _current_pos);
-      _begin = false; _include_final = false;
+      _begin = false;
     }
     else
     {
@@ -719,7 +719,7 @@ void window_walker::skip(size_t n)
   else if (_include_final && _current_pos < _parent.size())
   {
     _rec = _parent.subseq(_current_pos, _parent.size() - 1);
-    _end = false; _include_final = false;
+    _end = false;
   }
   else
   {
@@ -735,7 +735,7 @@ void window_walker::rewind(size_t n)
     if (_include_final)
     {
       _rec = _parent.subseq(0, _current_pos);
-      _begin = false; _include_final = false;
+      _begin = false;
     }
     else
     {

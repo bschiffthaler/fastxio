@@ -1,5 +1,9 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_policy(SET CMP0042 NEW)
+cmake_minimum_required(VERSION 3.0)
+
 project (fastx_io)
+
+set(Boost_USE_MULTITHREADED ON)
 
 if(NO_CHECKING)
    set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -DNO_ERROR_CHECKING=1" )
@@ -21,6 +25,7 @@ file(GLOB BZ2STREAM bz2stream/*.cpp)
 
 file(GLOB HEADERS src/*.h)
 file(GLOB EXTHEADERS generic_matrix/*.h)
+set(BSHEADERS external/libbs/src/str_manip.h)
 
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -49,9 +54,11 @@ target_link_libraries(fastxioS z bz2 bs)
 ###
 ## Apps
 ###
-
-add_subdirectory(apps/extr_prom)
-add_subdirectory(apps/contaminant_filter)
+if (BUILD_APPS)
+  add_subdirectory(apps/extr_prom)
+  add_subdirectory(apps/contaminant_filter)
+  add_subdirectory(apps/kmer_map)
+endif()
 
 if (PERFTOOLS)
   target_link_libraries(fastxio profiler)
@@ -60,5 +67,4 @@ endif()
 install(TARGETS fastxio fastxioS
         DESTINATION lib)
 
-install(FILES ${HEADERS} ${EXTHEADERS}
-	DESTINATION include/fastxio)
+install(FILES ${HEADERS} ${EXTHEADERS} ${BSHEADERS} DESTINATION include/fastxio)
