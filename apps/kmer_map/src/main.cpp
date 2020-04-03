@@ -45,7 +45,7 @@ uint64_t get_k(std::string const & kmer_file)
   return r.size();
 }
 
-k_map_t build_reference(std::string const & genome_file, uint64_t k)
+k_map_t build_reference(std::string const & genome_file, uint64_t const & k)
 {
   std::cerr << "Building index...\n";
   k_map_t ret;

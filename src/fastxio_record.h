@@ -29,21 +29,21 @@ public:
    *
    * @return The sequence of the object.
    */
-  std::string get_seq(void) const { return _seq; }
+  const std::string & get_seq(void) const { return _seq; }
 
   /**
    * @brief Get the quality as ACII ancoded characters.
    *
    * @return The quality values.
    */
-  std::string get_qual(void) const { return _qual; }
+  const std::string & get_qual(void) const { return _qual; }
 
   /**
    * @brief Get the ID.
    *
    * @return The ID (without '>' or '@').
    */
-  std::string get_id(void) const { return _id; }
+  const std::string & get_id(void) const { return _id; }
 
   /**
    * @brief Modify the ID
@@ -84,7 +84,7 @@ public:
    *
    * @return The bit encoded type of the record
    */
-  char get_type(void) const { return _type; }
+  const char & get_type(void) const { return _type; }
 
   /**
    * @brief Get a shared pointer to sequence.
@@ -109,7 +109,7 @@ public:
    *
    * @return The length of the record.
    */
-  length_t size(void) const {return _seq.length(); }
+  const length_t size(void) const {return _seq.length(); }
 
   /**
    * @brief Print the record to a sink.
@@ -623,6 +623,31 @@ public:
    * @return True if the beginning was reached, false otherwise
    */
   bool         begin() {return _begin;}
+
+  /**
+   * @brief Get current coordinates of the window
+   *
+   * @return A pair [start, stop)
+   */
+  std::pair<size_t, size_t> get_coord() {
+    if ((_current_pos + _k) >= _parent.size())
+    {
+      return std::pair<size_t, size_t>(_current_pos, _parent.size() - _current_pos);
+    }
+    else
+    {
+      return std::pair<size_t, size_t>(_current_pos, _k);
+    }
+  }
+
+  /**
+   * @brief Get the ID of the parent
+   *
+   * @return The parent ID
+   */
+  std::string get_parent_id() {
+    return _parent.get_id();
+  }
 private:
   size_t  _k;
   size_t  _current_pos;
@@ -741,6 +766,11 @@ public:
    */
   bool           begin() {return _begin;}
 
+  /**
+   * @brief Get current coordinates of the window
+   *
+   * @return A pair [start, stop)
+   */
   std::pair<size_t, size_t> get_coord() {
     if ((_current_pos + _ws) >= _parent.size())
     {
@@ -752,6 +782,11 @@ public:
     }
   }
 
+  /**
+   * @brief Get the ID of the parent
+   *
+   * @return The parent ID
+   */
   std::string get_parent_id() {
     return _parent.get_id();
   }
