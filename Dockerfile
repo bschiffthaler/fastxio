@@ -7,7 +7,7 @@ RUN apk update && apk add git cmake build-base boost-dev boost-static \
 
 WORKDIR /build
 
-RUN git clone --recursive https://github.com/bschiffthaler/fastxio
+COPY ./ /build/fastxio/
 
 WORKDIR /build/fastxio/build
 

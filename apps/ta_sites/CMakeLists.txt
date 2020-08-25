@@ -11,5 +11,5 @@ find_package(OpenMP COMPONENTS CXX REQUIRED)
 
 target_include_directories(TASites PUBLIC ${Boost_INCLUDE_DIRS})
 target_include_directories(TASites PUBLIC "../../src") 
-target_link_libraries(TASites -static ${Boost_LIBRARIES} OpenMP::OpenMP_CXX
+target_link_libraries(TASites ${Boost_LIBRARIES} OpenMP::OpenMP_CXX
   fastxio)
