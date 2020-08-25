@@ -58,6 +58,7 @@ if (BUILD_APPS)
   add_subdirectory(apps/extr_prom)
   add_subdirectory(apps/contaminant_filter)
   add_subdirectory(apps/kmer_map)
+  add_subdirectory(apps/ta_sites)
 endif()
 
 if (PERFTOOLS)
